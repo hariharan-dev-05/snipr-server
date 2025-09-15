@@ -17,7 +17,7 @@ const registerUser = async (req, res) => {
     await newUser.save();
     // Generate JWT
     const token = jwt.sign(
-      { id: newUser._id, email: newUser.email },
+      { id: newUser._id, email: newUser.email, name: newUser.name },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
@@ -39,12 +39,21 @@ const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: user._id, email: user.email, name: user.name },
+      JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
     res
       .status(200)
-      .json({ message: "Login successful", token, name: user.name });
+      .json({
+        message: "Login successful",
+        token,
+        name: user.name,
+        verified: true,
+      });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -54,7 +63,9 @@ const loginUser = async (req, res) => {
 const authenticateJWT = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "No token provided" });
+    return res
+      .status(401)
+      .json({ message: "No token provided", verified: false });
   }
   const token = authHeader.split(" ")[1];
   try {
@@ -62,7 +73,7 @@ const authenticateJWT = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ message: "Invalid token", verified: false });
   }
 };
 
