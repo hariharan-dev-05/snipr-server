@@ -12,8 +12,9 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://snipr-client.vercel.app", "http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://snipr-client.vercel.app/"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
 
